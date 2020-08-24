@@ -9,19 +9,19 @@ import string
 
 spacy.prefer_gpu()
 nlp = spacy.load("en_core_web_sm")
+tf.reset_default_graph()
+sess2 = gpt2.start_tf_sess()
 
 @st.cache
 def load_gpt():
-  tf.reset_default_graph()
-  sess2 = gpt2.start_tf_sess()
   gpt2.load_gpt2(sess2,run_name ="run1")
-  return gpt2
 
 # Function to Generate Headlines
 @st.cache
-def text_analyzer(my_text,temp,top_k,n_samples,batch_size,length,r=load_gpt()):
+def text_analyzer(my_text,temp,top_k,n_samples,batch_size,length):
 
-  gen = r.generate(sess2,
+  load_gpt()
+  gen = gpt2.generate(sess2,
               temperature=temp,
               top_k=top_k,
               nsamples=n_samples,
@@ -82,7 +82,7 @@ if choice == 'Headline Generation':
   Z,X=[],[]
 
   if st.button("Generate"):
-    nlp_result = text_analyzer(message,temp,top_k,n_samples,batch_size,length,gpt2)
+    nlp_result = text_analyzer(message,temp,top_k,n_samples,batch_size,length)
     main_result = []
     for i in nlp_result:
       main_result.append(fill_nums(message,i))
@@ -108,7 +108,7 @@ if choice == 'Next Word Prediction':
   Z,X=[],[]
 
   if st.button("Generate"):
-    nlp_result = text_analyzer(message,temp,top_k,n_samples,batch_size,length,gpt2)
+    nlp_result = text_analyzer(message,temp,top_k,n_samples,batch_size,length)
     result = rank(message,nlp_result)
     Z = [x for _,x in sorted(zip(result["Scores"],result["Sentence"]),reverse=True)]
     Y = sorted(result["Scores"])
